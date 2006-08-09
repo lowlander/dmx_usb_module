@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 	int res;
 	int i;
 
-	fd = open("/udev/dmx0",O_WRONLY);
+	fd = open("/dev/dmx0",O_WRONLY);
 	if (fd < 0) {
 		perror("open");
 		exit(-1);

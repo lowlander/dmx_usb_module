@@ -1,7 +1,7 @@
 /*
  * DMX USB driver
  *
- * Copyright (C) 2004 Erwin Rol (erwin@erwinrol.com)
+ * Copyright (C) 2004,2006 Erwin Rol (erwin@erwinrol.com)
  *
  * This driver is based on the usb-skeleton driver;
  *
@@ -39,7 +39,7 @@
 
 
 /* Version Information */
-#define DRIVER_VERSION "v0.1.20040914"
+#define DRIVER_VERSION "v0.1.20060116"
 #define DRIVER_AUTHOR "Erwin Rol, erwin@erwinrol.com"
 #define DRIVER_DESC "DMX USB Driver"
 
@@ -126,7 +126,6 @@ static struct file_operations dmx_usb_fops = {
 static struct usb_class_driver dmx_usb_class = {
 	.name =		"usb/dmx%d",
 	.fops =		&dmx_usb_fops,
-	.mode =		S_IFCHR | S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH,
 	.minor_base =	DMX_USB_MINOR_BASE,
 };
 
@@ -352,13 +351,13 @@ exit_not_opened:
 	return retval;
 }
 
-
 /**
  */
 static ssize_t dmx_usb_read (struct file *file, char *buffer, size_t count, loff_t *ppos)
 {
 	struct dmx_usb_device *dev;
 	int retval = 0;
+	int bytes_read;
 
 	dev = (struct dmx_usb_device *)file->private_data;
 
@@ -379,14 +378,14 @@ static ssize_t dmx_usb_read (struct file *file, char *buffer, size_t count, loff
 						dev->bulk_in_endpointAddr),
 			       dev->bulk_in_buffer,
 			       min (dev->bulk_in_size, count),
-			       &count, HZ*10);
+			       &bytes_read, HZ*10);
 
 	/* if the read was successful, copy the data to userspace */
 	if (!retval) {
-		if (copy_to_user (buffer, dev->bulk_in_buffer+2, count-2))
+		if (copy_to_user (buffer, dev->bulk_in_buffer+2, bytes_read-2))
 			retval = -EFAULT;
 		else
-			retval = count;
+			retval = bytes_read;
 	}
 
 	/* unlock the device */
@@ -397,7 +396,7 @@ static ssize_t dmx_usb_read (struct file *file, char *buffer, size_t count, loff
 static __u16 dmx_usb_get_status(struct dmx_usb_device* dev)
 {
 	int retval = 0;
-	size_t count = 0;
+	int count = 0;
 	__u16 buf;
 
 	retval = usb_bulk_msg (dev->udev,
@@ -639,8 +638,7 @@ static int dmx_usb_probe(struct usb_interface *interface, const struct usb_devic
 			 */
 			buffer_size = endpoint->wMaxPacketSize;
 			dev->bulk_out_size = 513;
-			dev->write_urb->transfer_flags = (URB_NO_TRANSFER_DMA_MAP |
-					URB_ASYNC_UNLINK);
+			dev->write_urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
 			dev->bulk_out_buffer = usb_buffer_alloc (udev,
 					buffer_size, GFP_KERNEL,
 					&dev->write_urb->transfer_dma);
