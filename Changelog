@@ -1,0 +1,4 @@
+15 Sep 2004 Erwin Rol <erwin@erwinrol.com>
+	* Added a check to see if the transmit 
+	  buffer is empty before doing the break.
+
