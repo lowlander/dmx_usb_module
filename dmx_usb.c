@@ -24,6 +24,7 @@
 #include <linux/completion.h>
 #include <asm/uaccess.h>
 #include <linux/usb.h>
+#include <linux/version.h>
 
 #include "dmx_usb.h"
 
@@ -44,8 +45,13 @@
 #define DRIVER_DESC "DMX USB Driver"
 
 /* Module parameters */
+#if ( LINUX_VERSION_CODE < KERNEL_VERSION(2,6,16) )
 MODULE_PARM(debug, "i");
 MODULE_PARM_DESC(debug, "Debug enabled or not");
+#else
+module_param(debug, bool, S_IRUGO | S_IWUSR);
+MODULE_PARM_DESC(debug, "Debug enabled or not");
+#endif
 
 static struct usb_device_id dmx_usb_table [] = {
 	{ USB_DEVICE_VER(FTDI_VID, FTDI_8U232AM_PID, 0x400, 0xffff) },
@@ -131,7 +137,9 @@ static struct usb_class_driver dmx_usb_class = {
 
 /* usb specific object needed to register this driver with the usb subsystem */
 static struct usb_driver dmx_usb_driver = {
+#if ( LINUX_VERSION_CODE < KERNEL_VERSION(2,6,16) )
 	.owner =	THIS_MODULE,
+#endif
 	.name =		"dmx_usb",
 	.probe =	dmx_usb_probe,
 	.disconnect =	dmx_usb_disconnect,
@@ -361,7 +369,7 @@ static ssize_t dmx_usb_read (struct file *file, char *buffer, size_t count, loff
 
 	dev = (struct dmx_usb_device *)file->private_data;
 
-	dbg("%s - minor %d, count = %d", __FUNCTION__, dev->minor, count);
+	dbg("%s - minor %d, count = %Zd", __FUNCTION__, dev->minor, count);
 
 	/* lock this object */
 	down (&dev->sem);
@@ -435,7 +443,7 @@ static ssize_t dmx_usb_write (struct file *file, const char *buffer, size_t coun
 
 	dev = (struct dmx_usb_device *)file->private_data;
 
-	dbg("%s - minor %d, count = %d", __FUNCTION__, dev->minor, count);
+	dbg("%s - minor %d, count = %Zd", __FUNCTION__, dev->minor, count);
 
 	/* lock this object */
 	down (&dev->sem);
