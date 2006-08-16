@@ -18,7 +18,10 @@ default:
 endif
 
 clean:
-	rm *.o *.ko
-	rm dmx_usb_test
+	rm -f *.o *.ko
+	rm -f dmx_usb_test
+	rm -f dmx_usb.mod.c
+	rm -f .dmx_usb.*
+	rm -rf .tmp_versions
 
 

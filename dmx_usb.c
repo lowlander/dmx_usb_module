@@ -14,7 +14,6 @@
  * $Id: dmx_usb.c 41 2004-09-14 23:35:25Z erwin $ 
  */
 
-#include <linux/config.h>
 #include <linux/kernel.h>
 #include <linux/errno.h>
 #include <linux/init.h>
@@ -40,7 +39,7 @@
 
 
 /* Version Information */
-#define DRIVER_VERSION "v0.1.20060116"
+#define DRIVER_VERSION "v0.1.20060816"
 #define DRIVER_AUTHOR "Erwin Rol, erwin@erwinrol.com"
 #define DRIVER_DESC "DMX USB Driver"
 
@@ -95,7 +94,7 @@ struct dmx_usb_device {
 static DECLARE_MUTEX (disconnect_sem);
 
 /* local function prototypes */
-static ssize_t dmx_usb_read	(struct file *file, char *buffer, size_t count, loff_t *ppos);
+//static ssize_t dmx_usb_read	(struct file *file, char *buffer, size_t count, loff_t *ppos);
 static ssize_t dmx_usb_write	(struct file *file, const char *buffer, size_t count, loff_t *ppos);
 static int dmx_usb_ioctl	(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg);
 static int dmx_usb_open		(struct inode *inode, struct file *file);
@@ -359,6 +358,10 @@ exit_not_opened:
 	return retval;
 }
 
+#if 0 
+
+Read is not yet supported
+
 /**
  */
 static ssize_t dmx_usb_read (struct file *file, char *buffer, size_t count, loff_t *ppos)
@@ -400,6 +403,8 @@ static ssize_t dmx_usb_read (struct file *file, char *buffer, size_t count, loff
 	up (&dev->sem);
 	return retval;
 }
+
+#endif
 
 static __u16 dmx_usb_get_status(struct dmx_usb_device* dev)
 {
