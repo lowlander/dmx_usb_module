@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 	}
 
 	for (i = 0; i < 513;i++) {
-		buffer[i] = 0x00;	
+		buffer[i] = i;	
 	}
 
 	buffer[512] = 0x55;
