@@ -1,0 +1,13 @@
+.dmx_usb.ko.cmd
+.dmx_usb.mod.o.cmd
+.dmx_usb.o.cmd
+.tmp_versions
+Module.markers
+Module.symvers
+dmx_usb.ko
+dmx_usb.mod.c
+dmx_usb.mod.o
+dmx_usb.o
+dmx_usb_test
+modules.order
+
