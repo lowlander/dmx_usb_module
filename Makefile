@@ -23,5 +23,6 @@ clean:
 	rm -f dmx_usb.mod.c
 	rm -f .dmx_usb.*
 	rm -rf .tmp_versions
+	rm -f Module.markers  modules.order  Module.symvers
 
 
