@@ -103,7 +103,7 @@ static int dmx_usb_release	(struct inode *inode, struct file *file);
 static int dmx_usb_probe	(struct usb_interface *interface, const struct usb_device_id *id);
 static void dmx_usb_disconnect	(struct usb_interface *interface);
 
-static void dmx_usb_write_bulk_callback	(struct urb *urb, struct pt_regs *regs);
+static void dmx_usb_write_bulk_callback	(struct urb *urb);
 
 static struct file_operations dmx_usb_fops = {
 	/*
@@ -556,7 +556,7 @@ static int dmx_usb_ioctl (struct inode *inode, struct file *file, unsigned int c
 
 /**
  */
-static void dmx_usb_write_bulk_callback (struct urb *urb, struct pt_regs *regs)
+static void dmx_usb_write_bulk_callback (struct urb *urb)
 {
 	struct dmx_usb_device *dev = (struct dmx_usb_device *)urb->context;
 
