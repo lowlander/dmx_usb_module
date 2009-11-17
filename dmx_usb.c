@@ -37,6 +37,9 @@
 #undef dbg
 #define dbg(format, arg...) do { if (debug) printk(KERN_DEBUG __FILE__ ": " format "\n" , ## arg); } while (0)
 
+#ifndef info
+#define info(format, arg...) do { printk(KERN_INFO __FILE__ ": " format "\n" , ## arg); } while (0)
+#endif
 
 /* Version Information */
 #define DRIVER_VERSION "v0.1.20060816"
