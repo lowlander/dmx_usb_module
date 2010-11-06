@@ -1,7 +1,7 @@
 /*
  * DMX USB driver
  *
- * Copyright (C) 2004,2006 Erwin Rol (erwin@erwinrol.com)
+ * Copyright (C) 2004,2006,2010 Erwin Rol (erwin@erwinrol.com)
  *
  * This driver is based on the usb-skeleton driver;
  *
@@ -11,7 +11,6 @@
  *	modify it under the terms of the GNU General Public License as
  *	published by the Free Software Foundation, version 2.
  *
- * $Id: dmx_usb.c 41 2004-09-14 23:35:25Z erwin $ 
  */
 
 #include <linux/kernel.h>
@@ -42,7 +41,7 @@
 #endif
 
 /* Version Information */
-#define DRIVER_VERSION "v0.1.20060816"
+#define DRIVER_VERSION "v0.1.20101106"
 #define DRIVER_AUTHOR "Erwin Rol, erwin@erwinrol.com"
 #define DRIVER_DESC "DMX USB Driver"
 
@@ -148,6 +147,19 @@ static struct usb_driver dmx_usb_driver = {
 	.id_table =	dmx_usb_table,
 };
 
+#if ( LINUX_VERSION_CODE < KERNEL_VERSION(2,6,34) )
+static inline void *usb_buffer_alloc(struct usb_device *dev, size_t size,
+                                    gfp_t mem_flags, dma_addr_t *dma)
+{
+	return usb_alloc_coherent(dev, size, mem_flags, dma);
+}
+
+static inline void usb_buffer_free(struct usb_device *dev, size_t size,
+                                  void *addr, dma_addr_t dma)
+{
+	return usb_free_coherent(dev, size, addr, dma);
+}
+#endif
 
 /**
  */
@@ -262,7 +274,7 @@ static void dmx_usb_set_break(struct dmx_usb_device* dev, int break_state)
 static inline void dmx_usb_delete (struct dmx_usb_device *dev)
 {
 	kfree (dev->bulk_in_buffer);
-	usb_buffer_free (dev->udev, dev->bulk_out_size,
+	usb_free_coherent (dev->udev, dev->bulk_out_size,
 				dev->bulk_out_buffer,
 				dev->write_urb->transfer_dma);
 	usb_free_urb (dev->write_urb);
@@ -655,7 +667,7 @@ static int dmx_usb_probe(struct usb_interface *interface, const struct usb_devic
 			buffer_size = endpoint->wMaxPacketSize;
 			dev->bulk_out_size = 513;
 			dev->write_urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
-			dev->bulk_out_buffer = usb_buffer_alloc (udev,
+			dev->bulk_out_buffer = usb_alloc_coherent (udev,
 					buffer_size, GFP_KERNEL,
 					&dev->write_urb->transfer_dma);
 			if (!dev->bulk_out_buffer) {
