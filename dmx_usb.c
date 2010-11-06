@@ -148,16 +148,16 @@ static struct usb_driver dmx_usb_driver = {
 };
 
 #if ( LINUX_VERSION_CODE < KERNEL_VERSION(2,6,34) )
-static inline void *usb_buffer_alloc(struct usb_device *dev, size_t size,
+static inline void *usb_alloc_coherent(struct usb_device *dev, size_t size,
                                     gfp_t mem_flags, dma_addr_t *dma)
 {
-	return usb_alloc_coherent(dev, size, mem_flags, dma);
+	return usb_buffer_alloc(dev, size, mem_flags, dma);
 }
 
-static inline void usb_buffer_free(struct usb_device *dev, size_t size,
+static inline void usb_free_coherent(struct usb_device *dev, size_t size,
                                   void *addr, dma_addr_t dma)
 {
-	return usb_free_coherent(dev, size, addr, dma);
+	return usb_buffer_free(dev, size, addr, dma);
 }
 #endif
 
