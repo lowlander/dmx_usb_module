@@ -13,7 +13,7 @@ PWD	:= $(shell pwd)
 
 default:
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules
-	gcc -O2 -pipe dmx_usb_test.c -o dmx_usb_test
+	gcc -O2 -pipe -Wall dmx_usb_test.c -o dmx_usb_test
 
 endif
 
