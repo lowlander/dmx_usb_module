@@ -115,7 +115,7 @@ static ssize_t dmx_usb_write	(struct file *file, const char *buffer, size_t coun
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,37) )
 static int dmx_usb_ioctl	(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg);
 #else
-static int dmx_usb_ioctl	(struct file *file, unsigned int cmd, unsigned long arg);
+static long dmx_usb_ioctl	(struct file *file, unsigned int cmd, unsigned long arg);
 #endif
 static int dmx_usb_open		(struct inode *inode, struct file *file);
 static int dmx_usb_release	(struct inode *inode, struct file *file);
@@ -566,7 +566,7 @@ exit:
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,37) )
 static int dmx_usb_ioctl (struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
 #else
-static int dmx_usb_ioctl (struct file *file, unsigned int cmd, unsigned long arg)
+static long dmx_usb_ioctl (struct file *file, unsigned int cmd, unsigned long arg)
 #endif
 {
 	struct dmx_usb_device *dev;
