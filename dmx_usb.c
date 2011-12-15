@@ -24,6 +24,16 @@
 #include <linux/usb.h>
 #include <linux/version.h>
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,26)
+#include <linux/semaphore.h>
+#else
+#include <asm/semaphore.h>
+#endif
+
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,36) )
+#define init_MUTEX(LOCKNAME) sema_init(LOCKNAME,1);
+#endif
+
 #include "dmx_usb.h"
 
 #ifdef CONFIG_USB_DEBUG
@@ -41,7 +51,7 @@
 #endif
 
 /* Version Information */
-#define DRIVER_VERSION "v0.1.20101106"
+#define DRIVER_VERSION "v0.1.20111215"
 #define DRIVER_AUTHOR "Erwin Rol, erwin@erwinrol.com"
 #define DRIVER_DESC "DMX USB Driver"
 
@@ -93,7 +103,11 @@ struct dmx_usb_device {
 
 
 /* prevent races between open() and disconnect() */
-static DECLARE_MUTEX (disconnect_sem);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,37)
+	static DECLARE_MUTEX(disconnect_sem);
+#else
+	static DEFINE_SEMAPHORE(disconnect_sem);
+#endif
 
 /* local function prototypes */
 //static ssize_t dmx_usb_read	(struct file *file, char *buffer, size_t count, loff_t *ppos);
@@ -119,14 +133,18 @@ static struct file_operations dmx_usb_fops = {
 	 */
 	.owner =	THIS_MODULE,
 
-	/* .read =		dmx_usb_read, */ 
-	.write =	dmx_usb_write,
-	.ioctl =	dmx_usb_ioctl,
-	.open =		dmx_usb_open,
-	.release =	dmx_usb_release,
+	/* .read =		dmx_usb_read, */
+	.write =		dmx_usb_write,
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,37) )
+	.ioctl		=	dmx_usb_ioctl,
+#else
+	.unlocked_ioctl =	dmx_usb_ioctl,
+#endif
+	.open =			dmx_usb_open,
+	.release =		dmx_usb_release,
 };
 
-/* 
+/*
  * usb class driver info in order to get a minor number from the usb core,
  * and to have the device registered with devfs and the driver core
  */
@@ -433,7 +451,7 @@ static __u16 dmx_usb_get_status(struct dmx_usb_device* dev)
 
 	if (retval)
 		return 0;
-	
+
 	return buf;
 }
 
