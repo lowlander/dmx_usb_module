@@ -10,4 +10,6 @@ dmx_usb.mod.o
 dmx_usb.o
 dmx_usb_test
 modules.order
+.dmx_usb.ko.unsigned.cmd
+dmx_usb.ko.unsigned
 
