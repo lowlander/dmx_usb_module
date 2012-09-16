@@ -631,8 +631,8 @@ static int dmx_usb_probe(struct usb_interface *interface, const struct usb_devic
 	int retval = -ENOMEM;
 
 	/* See if the device offered us matches what we can accept */
-	if ((udev->descriptor.idVendor != FTDI_VID) ||
-	    (udev->descriptor.idProduct != FTDI_8U232AM_PID)) {
+	if ((le16_to_cpu(udev->descriptor.idVendor) != FTDI_VID) ||
+	    (le16_to_cpu(udev->descriptor.idProduct) != FTDI_8U232AM_PID)) {
 		return -ENODEV;
 	}
 
