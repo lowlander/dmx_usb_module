@@ -50,6 +50,10 @@
 #define info(format, arg...) do { printk(KERN_INFO __FILE__ ": " format "\n" , ## arg); } while (0)
 #endif
 
+#ifndef err
+#define err(format, arg...) do { printk(KERN_ERR __FILE__ ": " format "\n" , ## arg); } while (0)
+#endif
+
 /* Version Information */
 #define DRIVER_VERSION "v0.1.20111215"
 #define DRIVER_AUTHOR "Erwin Rol, erwin@erwinrol.com"
