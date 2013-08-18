@@ -55,7 +55,7 @@
 #endif
 
 /* Version Information */
-#define DRIVER_VERSION "v0.1.20111215"
+#define DRIVER_VERSION "v0.1.20130818"
 #define DRIVER_AUTHOR "Erwin Rol, erwin@erwinrol.com"
 #define DRIVER_DESC "DMX USB Driver"
 
