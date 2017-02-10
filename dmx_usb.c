@@ -95,6 +95,7 @@ struct dmx_usb_device {
 
 	unsigned char *		bulk_out_buffer;	/* the buffer to send data */
 	size_t			bulk_out_size;		/* the size of the send buffer */
+	size_t			bulk_out_alloc_size;
 	struct urb *		write_urb;		/* the urb used to send data */
 	__u8			bulk_out_endpointAddr;	/* the address of the bulk out endpoint */
 	atomic_t		write_busy;		/* true iff write urb is busy */
@@ -246,8 +247,13 @@ static int dmx_usb_set_speed(struct dmx_usb_device* dev)
 
 static int dmx_usb_setup(struct dmx_usb_device* dev)
 {
+	char (*buf)[1] = NULL;
 	__u16 urb_value;
-	char buf[1];
+
+	buf = kmalloc(sizeof (*buf), GFP_KERNEL);
+	if (buf == NULL)
+		return -ENOMEM;
+
 
 	urb_value = FTDI_SIO_SET_DATA_STOP_BITS_2 | FTDI_SIO_SET_DATA_PARITY_NONE;
 	urb_value |= 8; // number of data bits
@@ -268,16 +274,19 @@ static int dmx_usb_setup(struct dmx_usb_device* dev)
 		err("%s error from disable flowcontrol urb", __FUNCTION__);
 	}
 
+	kfree(buf);
 	dmx_usb_set_speed(dev);
-
 	return 0;
 }
 
 static void dmx_usb_set_break(struct dmx_usb_device* dev, int break_state)
 {
+	char (*buf)[2];
 	__u16 urb_value = FTDI_SIO_SET_DATA_STOP_BITS_2 | FTDI_SIO_SET_DATA_PARITY_NONE | 8;
 
-	char buf[2];
+	buf = kmalloc(sizeof (*buf), GFP_KERNEL);
+	if (buf == NULL)
+		return;
 
 	if (break_state) {
 		urb_value |= FTDI_SIO_SET_BREAK;
@@ -291,7 +300,7 @@ static void dmx_usb_set_break(struct dmx_usb_device* dev, int break_state)
 		err("%s FAILED to enable/disable break state (state was %d)", __FUNCTION__,break_state);
 	}
 
-
+	kfree(buf);
 	dbg("%s break state is %d - urb is %d", __FUNCTION__,break_state, urb_value);
 }
 
@@ -300,7 +309,7 @@ static void dmx_usb_set_break(struct dmx_usb_device* dev, int break_state)
 static inline void dmx_usb_delete (struct dmx_usb_device *dev)
 {
 	kfree (dev->bulk_in_buffer);
-	usb_free_coherent (dev->udev, dev->bulk_out_size,
+	usb_free_coherent (dev->udev, dev->bulk_out_alloc_size,
 				dev->bulk_out_buffer,
 				dev->write_urb->transfer_dma);
 	usb_free_urb (dev->write_urb);
@@ -449,18 +458,33 @@ static ssize_t dmx_usb_read (struct file *file, char *buffer, size_t count, loff
 
 static __u16 dmx_usb_get_status(struct dmx_usb_device* dev)
 {
-	int retval = 0;
-	int count = 0;
-	__u16 buf;
+	int *count = NULL;
+	__u16 *buf = NULL;
+	int retval;
+
+	count = kmalloc(sizeof (*count), GFP_KERNEL);
+	if (count == NULL)
+		goto error;
+
+	buf = kmalloc(sizeof (*buf), GFP_KERNEL);
+	if (buf == NULL)
+		goto error;
 
 	retval = usb_bulk_msg (dev->udev,
 				usb_rcvbulkpipe (dev->udev, dev->bulk_in_endpointAddr),
-				&buf, 2, &count, HZ*10);
+				buf, 2, count, HZ*10);
 
 	if (retval)
-		return 0;
+		goto error;
 
-	return buf;
+	kfree(buf);
+	kfree(count);
+	return *buf;
+
+error:
+	kfree(buf);
+	kfree(count);
+	return 0;
 }
 
 
@@ -696,6 +720,7 @@ static int dmx_usb_probe(struct usb_interface *interface, const struct usb_devic
 			 */
 			buffer_size = endpoint->wMaxPacketSize;
 			dev->bulk_out_size = 513;
+			dev->bulk_out_alloc_size = buffer_size;
 			dev->write_urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
 			dev->bulk_out_buffer = usb_alloc_coherent (udev,
 					buffer_size, GFP_KERNEL,
