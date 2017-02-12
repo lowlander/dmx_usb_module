@@ -408,7 +408,7 @@ exit_not_opened:
 	return retval;
 }
 
-#if 0 
+#if 0
 
 Read is not yet supported
 
@@ -460,7 +460,8 @@ static __u16 dmx_usb_get_status(struct dmx_usb_device* dev)
 {
 	int *count = NULL;
 	__u16 *buf = NULL;
-	int retval;
+	__u16 status;
+	int bulk_retval;
 
 	count = kmalloc(sizeof (*count), GFP_KERNEL);
 	if (count == NULL)
@@ -470,16 +471,17 @@ static __u16 dmx_usb_get_status(struct dmx_usb_device* dev)
 	if (buf == NULL)
 		goto error;
 
-	retval = usb_bulk_msg (dev->udev,
+	bulk_retval = usb_bulk_msg (dev->udev,
 				usb_rcvbulkpipe (dev->udev, dev->bulk_in_endpointAddr),
-				buf, 2, count, HZ*10);
+				buf, sizeof(*buf), count, HZ*10);
 
-	if (retval)
+	if (bulk_retval)
 		goto error;
 
+	status = *buf;
 	kfree(buf);
 	kfree(count);
-	return *buf;
+	return status;
 
 error:
 	kfree(buf);
@@ -580,6 +582,7 @@ static ssize_t dmx_usb_write (struct file *file, const char *buffer, size_t coun
 	} else {
 		retval = bytes_written;
 	}
+
 
 exit:
 	/* unlock the device */
