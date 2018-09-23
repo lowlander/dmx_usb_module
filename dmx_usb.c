@@ -239,26 +239,24 @@ static int dmx_usb_setup(struct dmx_usb_device* dev)
 
 static void dmx_usb_set_break(struct dmx_usb_device* dev, int break_state)
 {
-	char (*buf)[2];
-	__u16 urb_value = FTDI_SIO_SET_DATA_STOP_BITS_2 | FTDI_SIO_SET_DATA_PARITY_NONE | 8;
+	int ctrl_result;
 
-	buf = kmalloc(sizeof (*buf), GFP_KERNEL);
-	if (buf == NULL)
-		return;
+	__u16 urb_value = FTDI_SIO_SET_DATA_STOP_BITS_2 | FTDI_SIO_SET_DATA_PARITY_NONE | 8;
 
 	if (break_state) {
 		urb_value |= FTDI_SIO_SET_BREAK;
 	}
 
-	if (usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
+	ctrl_result = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
 				FTDI_SIO_SET_DATA_REQUEST,
 				FTDI_SIO_SET_DATA_REQUEST_TYPE,
 				urb_value , 0,
-				buf, 2, HZ*10) < 0) {
-		err("%s FAILED to enable/disable break state (state was %d)", __FUNCTION__,break_state);
+				NULL, 0, HZ*10);
+
+	if (ctrl_result < 0) {
+		err("%s FAILED to enable/disable break state (state was %d) errno: ", __FUNCTION__, break_state, ctrl_result);
 	}
 
-	kfree(buf);
 	dbg("%s break state is %d - urb is %d", __FUNCTION__,break_state, urb_value);
 }
 
