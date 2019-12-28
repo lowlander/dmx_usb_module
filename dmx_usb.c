@@ -1,7 +1,7 @@
 /*
  * DMX USB driver
  *
- * Copyright (C) 2004,2006,2010 Erwin Rol (erwin@erwinrol.com)
+ * Copyright (C) 2004,2006,2010,2019 Erwin Rol (erwin@erwinrol.com)
  *
  * This driver is based on the usb-skeleton driver;
  *
@@ -49,7 +49,7 @@
 #endif
 
 /* Version Information */
-#define DRIVER_VERSION "v0.1.20130818"
+#define DRIVER_VERSION "V19.12.1"
 #define DRIVER_AUTHOR "Erwin Rol, erwin@erwinrol.com"
 #define DRIVER_DESC "DMX USB Driver"
 
