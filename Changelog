@@ -1,3 +1,7 @@
+28 Dec 2019 Erwin Rol <erwin@erwinrol.com>
+	* This Changelog file isn't used anymore, please just
+	  check the git commit history for the changes
+
 08 Aug 2006 Erwin Rol <erwin@erwinrol.com>
 	* Updated for kernels newer than 2.6.16
 
