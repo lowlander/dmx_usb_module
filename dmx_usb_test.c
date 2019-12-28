@@ -1,5 +1,6 @@
 /*
- * $Id: dmx_usb_test.c 40 2004-09-11 11:16:39Z erwin $ 
+ * Copyright (c) 2019 Erwin Rol <erwin@erwinrol.com>
+ * SPDX-License-Identifier: MIT
  */
 
 #include <stdio.h>
