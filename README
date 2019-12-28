@@ -1,4 +1,4 @@
-The DMX USB driver is a Linux 2.6 kernel driver for the Enttec
+The DMX USB driver is a Linux 4.X kernel driver for the Enttec
 DMX USB dongle ( http://www.enttec.com/dmxusb.php )
 
 Building the driver
@@ -19,4 +19,4 @@ dmx_usb.o module the ftdi_sio.o module should be patched and the Product ID
 for the FT232BM should be removed from it, this will mean all other 
 serial-usb devices are still supported just not the one with FT232BM chips, 
 since it isn't possible to differentiate DMX-USB and normal-serial versions.
- 
+
