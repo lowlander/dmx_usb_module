@@ -20,19 +20,13 @@
 #include <linux/module.h>
 #include <linux/spinlock.h>
 #include <linux/completion.h>
-#include <asm/uaccess.h>
 #include <linux/usb.h>
 #include <linux/version.h>
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,26)
 #include <linux/semaphore.h>
-#else
-#include <asm/semaphore.h>
-#endif
+#include <linux/uaccess.h>
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,36) )
+
 #define init_MUTEX(LOCKNAME) sema_init(LOCKNAME,1);
-#endif
 
 #include "dmx_usb.h"
 
@@ -60,13 +54,8 @@
 #define DRIVER_DESC "DMX USB Driver"
 
 /* Module parameters */
-#if ( LINUX_VERSION_CODE < KERNEL_VERSION(2,6,16) )
-MODULE_PARM(debug, "i");
-MODULE_PARM_DESC(debug, "Debug enabled or not");
-#else
 module_param(debug, int, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(debug, "Debug enabled or not");
-#endif
 
 static struct usb_device_id dmx_usb_table [] = {
 	{ USB_DEVICE_VER(FTDI_VID, FTDI_8U232AM_PID, 0x400, 0xffff) },
@@ -108,20 +97,12 @@ struct dmx_usb_device {
 
 
 /* prevent races between open() and disconnect() */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,37)
-	static DECLARE_MUTEX(disconnect_sem);
-#else
 	static DEFINE_SEMAPHORE(disconnect_sem);
-#endif
 
 /* local function prototypes */
 //static ssize_t dmx_usb_read	(struct file *file, char *buffer, size_t count, loff_t *ppos);
 static ssize_t dmx_usb_write	(struct file *file, const char *buffer, size_t count, loff_t *ppos);
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,37) )
-static int dmx_usb_ioctl	(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg);
-#else
 static long dmx_usb_ioctl	(struct file *file, unsigned int cmd, unsigned long arg);
-#endif
 static int dmx_usb_open		(struct inode *inode, struct file *file);
 static int dmx_usb_release	(struct inode *inode, struct file *file);
 
@@ -144,11 +125,7 @@ static struct file_operations dmx_usb_fops = {
 
 	/* .read =		dmx_usb_read, */
 	.write =		dmx_usb_write,
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,37) )
-	.ioctl		=	dmx_usb_ioctl,
-#else
 	.unlocked_ioctl =	dmx_usb_ioctl,
-#endif
 	.open =			dmx_usb_open,
 	.release =		dmx_usb_release,
 };
@@ -165,28 +142,11 @@ static struct usb_class_driver dmx_usb_class = {
 
 /* usb specific object needed to register this driver with the usb subsystem */
 static struct usb_driver dmx_usb_driver = {
-#if ( LINUX_VERSION_CODE < KERNEL_VERSION(2,6,16) )
-	.owner =	THIS_MODULE,
-#endif
 	.name =		"dmx_usb",
 	.probe =	dmx_usb_probe,
 	.disconnect =	dmx_usb_disconnect,
 	.id_table =	dmx_usb_table,
 };
-
-#if ( LINUX_VERSION_CODE < KERNEL_VERSION(2,6,34) )
-static inline void *usb_alloc_coherent(struct usb_device *dev, size_t size,
-                                    gfp_t mem_flags, dma_addr_t *dma)
-{
-	return usb_buffer_alloc(dev, size, mem_flags, dma);
-}
-
-static inline void usb_free_coherent(struct usb_device *dev, size_t size,
-                                  void *addr, dma_addr_t dma)
-{
-	return usb_buffer_free(dev, size, addr, dma);
-}
-#endif
 
 /**
  */
@@ -515,7 +475,7 @@ static ssize_t dmx_usb_write (struct file *file, const char *buffer, size_t coun
 
 	dev = (struct dmx_usb_device *)file->private_data;
 
-	dbg("%s - minor %d, count = %Zd", __FUNCTION__, dev->minor, count);
+	dbg("%s - minor %d, count = %d", __FUNCTION__, dev->minor, count);
 
 	/* lock this object */
 	down (&dev->sem);
@@ -594,11 +554,7 @@ exit:
 
 /**
  */
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,37) )
-static int dmx_usb_ioctl (struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
-#else
 static long dmx_usb_ioctl (struct file *file, unsigned int cmd, unsigned long arg)
-#endif
 {
 	struct dmx_usb_device *dev;
 
