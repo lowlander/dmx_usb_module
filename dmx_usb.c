@@ -254,7 +254,7 @@ static void dmx_usb_set_break(struct dmx_usb_device* dev, int break_state)
 				NULL, 0, HZ*10);
 
 	if (ctrl_result < 0) {
-		err("%s FAILED to enable/disable break state (state was %d) errno: ", __FUNCTION__, break_state, ctrl_result);
+		err("%s FAILED to enable/disable break state (state was %d) errno: %d", __FUNCTION__, break_state, ctrl_result);
 	}
 
 	dbg("%s break state is %d - urb is %d", __FUNCTION__,break_state, urb_value);
