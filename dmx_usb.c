@@ -178,15 +178,10 @@ static __u32 dmx_usb_baud_to_divisor(int baud)
 
 static int dmx_usb_set_speed(struct dmx_usb_device* dev)
 {
-	char *buf;
 	__u16 urb_value;
 	__u16 urb_index;
 	__u32 urb_index_value;
 	int rv;
-
-	buf = kmalloc(1, GFP_NOIO);
-	if (!buf)
-		return -ENOMEM;
 
 	urb_index_value = dmx_usb_baud_to_divisor(250000);
 	urb_value = (__u16)urb_index_value;
@@ -197,21 +192,14 @@ static int dmx_usb_set_speed(struct dmx_usb_device* dev)
 				FTDI_SIO_SET_BAUDRATE_REQUEST,
 				FTDI_SIO_SET_BAUDRATE_REQUEST_TYPE,
 				urb_value, urb_index,
-				buf, 0, HZ*10);
+				NULL, 0, HZ*10);
 
-	kfree(buf);
 	return rv;
 }
 
 static int dmx_usb_setup(struct dmx_usb_device* dev)
 {
-	char (*buf)[1] = NULL;
 	__u16 urb_value;
-
-	buf = kmalloc(sizeof (*buf), GFP_KERNEL);
-	if (buf == NULL)
-		return -ENOMEM;
-
 
 	urb_value = FTDI_SIO_SET_DATA_STOP_BITS_2 | FTDI_SIO_SET_DATA_PARITY_NONE;
 	urb_value |= 8; // number of data bits
@@ -220,7 +208,7 @@ static int dmx_usb_setup(struct dmx_usb_device* dev)
 				FTDI_SIO_SET_DATA_REQUEST,
 				FTDI_SIO_SET_DATA_REQUEST_TYPE,
 				urb_value , 0,
-				buf, 0, HZ*10) < 0) {
+				NULL, 0, HZ*10) < 0) {
 		err("%s FAILED to set databits/stopbits/parity", __FUNCTION__);
 	}
 
@@ -228,11 +216,10 @@ static int dmx_usb_setup(struct dmx_usb_device* dev)
 				FTDI_SIO_SET_FLOW_CTRL_REQUEST,
 				FTDI_SIO_SET_FLOW_CTRL_REQUEST_TYPE,
 				0, 0,
-				buf, 0, HZ*10) < 0) {
+				NULL, 0, HZ*10) < 0) {
 		err("%s error from disable flowcontrol urb", __FUNCTION__);
 	}
 
-	kfree(buf);
 	dmx_usb_set_speed(dev);
 	return 0;
 }
@@ -366,35 +353,31 @@ exit_not_opened:
 
 static __u16 dmx_usb_get_status(struct dmx_usb_device* dev)
 {
-	int *count = NULL;
+	__u16 status = 0;
+	int count = 0;
 	__u16 *buf = NULL;
-	__u16 status;
+	size_t buf_size = sizeof(__u16);
 	int bulk_retval;
 
-	count = kmalloc(sizeof (*count), GFP_KERNEL);
-	if (count == NULL)
-		goto error;
-
-	buf = kmalloc(sizeof (*buf), GFP_KERNEL);
+	buf = kmalloc(buf_size, GFP_KERNEL);
 	if (buf == NULL)
 		goto error;
 
 	bulk_retval = usb_bulk_msg (dev->udev,
 				usb_rcvbulkpipe (dev->udev, dev->bulk_in_endpointAddr),
-				buf, sizeof(*buf), count, HZ*10);
+				buf, buf_size, &count, HZ*10);
 
 	if (bulk_retval)
 		goto error;
 
-	status = *buf;
-	kfree(buf);
-	kfree(count);
-	return status;
+	if (buf_size != count)
+		goto error;
 
+	status = *buf;
 error:
 	kfree(buf);
-	kfree(count);
-	return 0;
+
+	return status;
 }
 
 
