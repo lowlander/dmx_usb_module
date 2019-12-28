@@ -100,7 +100,6 @@ struct dmx_usb_device {
 	static DEFINE_SEMAPHORE(disconnect_sem);
 
 /* local function prototypes */
-//static ssize_t dmx_usb_read	(struct file *file, char *buffer, size_t count, loff_t *ppos);
 static ssize_t dmx_usb_write	(struct file *file, const char *buffer, size_t count, loff_t *ppos);
 static long dmx_usb_ioctl	(struct file *file, unsigned int cmd, unsigned long arg);
 static int dmx_usb_open		(struct inode *inode, struct file *file);
@@ -123,7 +122,6 @@ static struct file_operations dmx_usb_fops = {
 	 */
 	.owner =	THIS_MODULE,
 
-	/* .read =		dmx_usb_read, */
 	.write =		dmx_usb_write,
 	.unlocked_ioctl =	dmx_usb_ioctl,
 	.open =			dmx_usb_open,
@@ -367,54 +365,6 @@ exit_not_opened:
 
 	return retval;
 }
-
-#if 0
-
-Read is not yet supported
-
-/**
- */
-static ssize_t dmx_usb_read (struct file *file, char *buffer, size_t count, loff_t *ppos)
-{
-	struct dmx_usb_device *dev;
-	int retval = 0;
-	int bytes_read;
-
-	dev = (struct dmx_usb_device *)file->private_data;
-
-	dbg("%s - minor %d, count = %Zd", __FUNCTION__, dev->minor, count);
-
-	/* lock this object */
-	down (&dev->sem);
-
-	/* verify that the device wasn't unplugged */
-	if (!dev->present) {
-		up (&dev->sem);
-		return -ENODEV;
-	}
-
-	/* do a blocking bulk read to get data from the device */
-	retval = usb_bulk_msg (dev->udev,
-			       usb_rcvbulkpipe (dev->udev,
-						dev->bulk_in_endpointAddr),
-			       dev->bulk_in_buffer,
-			       min (dev->bulk_in_size, count),
-			       &bytes_read, HZ*10);
-
-	/* if the read was successful, copy the data to userspace */
-	if (!retval) {
-		if (copy_to_user (buffer, dev->bulk_in_buffer+2, bytes_read-2))
-			retval = -EFAULT;
-		else
-			retval = bytes_read;
-	}
-
-	/* unlock the device */
-	up (&dev->sem);
-	return retval;
-}
-
-#endif
 
 static __u16 dmx_usb_get_status(struct dmx_usb_device* dev)
 {
