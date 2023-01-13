@@ -406,7 +406,7 @@ static ssize_t dmx_usb_write (struct file *file, const char *buffer, size_t coun
 
 	dev = (struct dmx_usb_device *)file->private_data;
 
-	dbg("%s - minor %d, count = %d", __FUNCTION__, dev->minor, count);
+	dbg("%s - minor %d, count = %zu", __FUNCTION__, dev->minor, count);
 
 	/* lock this object */
 	down (&dev->sem);
@@ -500,7 +500,7 @@ static long dmx_usb_ioctl (struct file *file, unsigned int cmd, unsigned long ar
 		return -ENODEV;
 	}
 
-	dbg("%s - minor %d, cmd 0x%.4x, arg %ld", __FUNCTION__,
+	dbg("%s - minor %d, cmd 0x%.4x, arg %lu", __FUNCTION__,
 	    dev->minor, cmd, arg);
 
 	/* fill in your device specific stuff here */
