@@ -97,7 +97,11 @@ struct dmx_usb_device {
 
 
 /* prevent races between open() and disconnect() */
-	static DEFINE_SEMAPHORE(disconnect_sem);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,4,0)
+static DEFINE_SEMAPHORE(disconnect_sem, 1);
+#else
+static DEFINE_SEMAPHORE(disconnect_sem);
+#endif
 
 /* local function prototypes */
 static ssize_t dmx_usb_write	(struct file *file, const char *buffer, size_t count, loff_t *ppos);
